@@ -1,4 +1,11 @@
 import { Category, Product, Banner, StoreSettings } from '../types';
+import heroBannerImg from '../assets/images/regenerated_image_1794725314554.png';
+import catSolidTshirtImg from '../assets/images/regenerated_image_1794725318602.png';
+import catPremiumPoloImg from '../assets/images/regenerated_image_1794725322096.png';
+import catDenimJeansImg from '../assets/images/regenerated_image_1794725325994.png';
+import catPremiumPanjabiImg from '../assets/images/regenerated_image_1794725329989.png';
+import prodPanjabi01Img from '../assets/images/regenerated_image_1794725334240.png';
+import prodPolo01Img from '../assets/images/regenerated_image_1794725346976.png';
 
 export const INITIAL_CATEGORIES: Category[] = [
   {
@@ -7,7 +14,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'Solid T-Shirt',
     nameBn: 'সলিড টি-শার্ট',
     description: '100% Combed Compact Cotton, 200+ GSM with reactive dye and zero color fade.',
-    imageUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=800&auto=format&fit=crop',
+    imageUrl: catSolidTshirtImg,
     displayOrder: 1,
   },
   {
@@ -34,7 +41,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'Premium Polo',
     nameBn: 'প্রিমিয়াম পোলো',
     description: 'Pique knit luxury polos with mother-of-pearl buttons and tailored ribbed collars.',
-    imageUrl: 'https://images.unsplash.com/photo-1625910513413-5353d2bf2eb8?q=80&w=800&auto=format&fit=crop',
+    imageUrl: catPremiumPoloImg,
     displayOrder: 4,
   },
   {
@@ -61,7 +68,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'Premium Panjabi',
     nameBn: 'প্রিমিয়াম পাঞ্জাবি',
     description: 'Royal Jacquard and fine cotton embroidery panjabis with tailored bespoke cuts.',
-    imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop',
+    imageUrl: catPremiumPanjabiImg,
     displayOrder: 7,
   },
   {
@@ -79,7 +86,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     name: 'Premium Denim Jeans',
     nameBn: 'প্রিমিয়াম ডেনিম জিন্স',
     description: 'Heavyweight selvedge denim with authentic vintage wash and elastane comfort stretch.',
-    imageUrl: 'https://images.unsplash.com/photo-1542272604-780c96856592?q=80&w=800&auto=format&fit=crop',
+    imageUrl: catDenimJeansImg,
     displayOrder: 9,
   },
   {
@@ -109,7 +116,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sizes: ['M', 'L', 'XL', 'XXL'],
     colors: ['Black Gold', 'Deep Navy', 'Champagne Beige'],
     images: [
-      'https://images.unsplash.com/photo-1625910513413-5353d2bf2eb8?q=80&w=900&auto=format&fit=crop',
+      prodPolo01Img,
       'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?q=80&w=900&auto=format&fit=crop',
     ],
     isFeatured: true,
@@ -135,7 +142,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     sizes: ['M', 'L', 'XL', 'XXL'],
     colors: ['Obsidian Black', 'Pearl White', 'Deep Royal Navy'],
     images: [
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=900&auto=format&fit=crop',
+      prodPanjabi01Img,
       'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=900&auto=format&fit=crop',
     ],
     isFeatured: true,
@@ -361,7 +368,7 @@ export const INITIAL_BANNERS: Banner[] = [
     id: 'banner-01',
     title: 'THE ROYAL WINTER & LUXURY COLLECTION',
     subtitle: 'STYLE • QUALITY • ELEGANCE — Designed for the modern gentleman',
-    imageUrl: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop',
+    imageUrl: heroBannerImg,
     linkUrl: '/shop?category=winter-collection',
     buttonText: 'EXPLORE COLLECTION',
     isActive: true,
