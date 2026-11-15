@@ -1,0 +1,6 @@
+{
+  "name": "SHOP WITH CLASSY NIRAB",
+  "description": "SHOP WITH CLASSY NIRAB - Premium fashion and luxury apparel. Style, Quality, and Elegance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

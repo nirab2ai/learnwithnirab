@@ -1,0 +1,232 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Global Hardened Helper Primitives
+    // -------------------------------------------------------------------------
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Store Owner verification with verified email
+    function isOwnerAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email == 'nirab2ai@gmail.com' &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isOwnerAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isCustomerOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // -------------------------------------------------------------------------
+    // ADMINS COLLECTION
+    // -------------------------------------------------------------------------
+    match /admins/{adminUid} {
+      allow get: if isSignedIn() && (request.auth.uid == adminUid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isOwnerAdmin() && isValidId(adminUid);
+    }
+
+    // -------------------------------------------------------------------------
+    // USERS (Customer Profiles)
+    // -------------------------------------------------------------------------
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+        data.keys().hasOnly(['uid', 'email', 'displayName', 'phone', 'address', 'district', 'deliveryArea', 'role', 'createdAt', 'updatedAt']) &&
+        data.uid is string && data.uid.size() <= 128 &&
+        data.email is string && data.email.size() <= 100 &&
+        data.role == 'customer' &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+        (!('phone' in data) || (data.phone is string && data.phone.size() <= 25)) &&
+        (!('address' in data) || (data.address is string && data.address.size() <= 400)) &&
+        (!('district' in data) || (data.district is string && data.district.size() <= 60)) &&
+        (!('deliveryArea' in data) || (data.deliveryArea in ['inside_dhaka', 'outside_dhaka']));
+    }
+
+    match /users/{userId} {
+      allow get: if isCustomerOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isCustomerOwner(userId) &&
+        isValidId(userId) &&
+        incoming().uid == request.auth.uid &&
+        isValidUserProfile(incoming());
+      allow update: if isValidUserProfile(incoming()) && (
+        isAdmin() ||
+        (
+          isCustomerOwner(userId) &&
+          incoming().uid == existing().uid &&
+          incoming().role == 'customer' &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'phone', 'address', 'district', 'deliveryArea', 'updatedAt'])
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // PRODUCTS
+    // -------------------------------------------------------------------------
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'slug', 'price', 'stock', 'category']) &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 150 &&
+        data.slug is string && data.slug.size() > 0 && data.slug.size() <= 180 &&
+        data.price is number && data.price >= 0 &&
+        data.stock is number && data.stock >= 0 &&
+        data.category is string && data.category.size() <= 60 &&
+        (!('discountPrice' in data) || (data.discountPrice is number && data.discountPrice >= 0)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 4000)) &&
+        (!('descriptionBn' in data) || (data.descriptionBn is string && data.descriptionBn.size() <= 4000)) &&
+        (!('nameBn' in data) || (data.nameBn is string && data.nameBn.size() <= 150)) &&
+        (!('categoryName' in data) || (data.categoryName is string && data.categoryName.size() <= 80)) &&
+        (!('sizes' in data) || (data.sizes is list && data.sizes.size() <= 15)) &&
+        (!('colors' in data) || (data.colors is list && data.colors.size() <= 15)) &&
+        (!('images' in data) || (data.images is list && data.images.size() <= 20)) &&
+        (!('isFeatured' in data) || (data.isFeatured is bool)) &&
+        (!('isBestSeller' in data) || (data.isBestSeller is bool)) &&
+        (!('isNewArrival' in data) || (data.isNewArrival is bool)) &&
+        (!('fabric' in data) || (data.fabric is string && data.fabric.size() <= 100)) &&
+        (!('careInstructions' in data) || (data.careInstructions is string && data.careInstructions.size() <= 500));
+    }
+
+    match /products/{productId} {
+      allow get, list: if true; // Public catalog viewable by all shoppers
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming());
+      allow update: if isAdmin() && isValidProduct(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // CATEGORIES
+    // -------------------------------------------------------------------------
+    function isValidCategory(data) {
+      return data.keys().hasAll(['slug', 'name']) &&
+        data.slug is string && data.slug.size() <= 60 &&
+        data.name is string && data.name.size() <= 80 &&
+        (!('nameBn' in data) || (data.nameBn is string && data.nameBn.size() <= 80)) &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+        (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1000)) &&
+        (!('displayOrder' in data) || (data.displayOrder is number));
+    }
+
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create, update: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // ORDERS
+    // -------------------------------------------------------------------------
+    function isValidOrder(data) {
+      return data.keys().hasAll(['orderNumber', 'customerId', 'customerName', 'customerPhone', 'deliveryAddress', 'subtotal', 'total', 'status']) &&
+        data.orderNumber is string && data.orderNumber.size() <= 35 &&
+        data.customerId is string && data.customerId.size() <= 128 &&
+        data.customerName is string && data.customerName.size() <= 100 &&
+        data.customerPhone is string && data.customerPhone.size() <= 25 &&
+        data.deliveryAddress is string && data.deliveryAddress.size() <= 400 &&
+        data.subtotal is number && data.subtotal >= 0 &&
+        data.total is number && data.total >= 0 &&
+        data.status in ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] &&
+        (!('customerEmail' in data) || (data.customerEmail is string && data.customerEmail.size() <= 100)) &&
+        (!('district' in data) || (data.district is string && data.district.size() <= 60)) &&
+        (!('deliveryArea' in data) || (data.deliveryArea in ['inside_dhaka', 'outside_dhaka'])) &&
+        (!('orderNotes' in data) || (data.orderNotes is string && data.orderNotes.size() <= 500)) &&
+        (!('paymentMethod' in data) || (data.paymentMethod in ['Cash on Delivery', 'bKash', 'Nagad'])) &&
+        (!('deliveryFee' in data) || (data.deliveryFee is number && data.deliveryFee >= 0)) &&
+        (!('items' in data) || (data.items is list && data.items.size() <= 50));
+    }
+
+    match /orders/{orderId} {
+      allow get: if isAdmin() || (
+        isSignedIn() && resource.data.customerId == request.auth.uid
+      );
+      // Query Enforcer: Clients can only list their own orders, or Admin lists all
+      allow list: if isAdmin() || (
+        isSignedIn() && resource.data.customerId == request.auth.uid
+      );
+      // Customer or guest creation
+      allow create: if isValidId(orderId) &&
+        isValidOrder(incoming()) &&
+        (
+          !isSignedIn() ||
+          incoming().customerId == request.auth.uid ||
+          isAdmin()
+        );
+      // Only Admin can update order status or details
+      allow update: if isAdmin() && isValidOrder(incoming()) && (
+        incoming().orderNumber == existing().orderNumber &&
+        incoming().customerId == existing().customerId
+      );
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // BANNERS
+    // -------------------------------------------------------------------------
+    function isValidBanner(data) {
+      return data.keys().hasAll(['title', 'imageUrl']) &&
+        data.title is string && data.title.size() <= 120 &&
+        data.imageUrl is string && data.imageUrl.size() <= 1000 &&
+        (!('subtitle' in data) || (data.subtitle is string && data.subtitle.size() <= 200)) &&
+        (!('linkUrl' in data) || (data.linkUrl is string && data.linkUrl.size() <= 300)) &&
+        (!('buttonText' in data) || (data.buttonText is string && data.buttonText.size() <= 50)) &&
+        (!('isActive' in data) || (data.isActive is bool)) &&
+        (!('order' in data) || (data.order is number));
+    }
+
+    match /banners/{bannerId} {
+      allow get, list: if true;
+      allow create, update: if isAdmin() && isValidId(bannerId) && isValidBanner(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // STORE SETTINGS
+    // -------------------------------------------------------------------------
+    function isValidSettings(data) {
+      return data.keys().hasAll(['storeName', 'phone1', 'email']) &&
+        data.storeName is string && data.storeName.size() <= 100 &&
+        data.phone1 is string && data.phone1.size() <= 25 &&
+        data.email is string && data.email.size() <= 100 &&
+        (!('tagline' in data) || (data.tagline is string && data.tagline.size() <= 150)) &&
+        (!('phone2' in data) || (data.phone2 is string && data.phone2.size() <= 25)) &&
+        (!('whatsapp' in data) || (data.whatsapp is string && data.whatsapp.size() <= 25)) &&
+        (!('facebookUrl' in data) || (data.facebookUrl is string && data.facebookUrl.size() <= 300)) &&
+        (!('deliveryFeeInsideDhaka' in data) || (data.deliveryFeeInsideDhaka is number && data.deliveryFeeInsideDhaka >= 0)) &&
+        (!('deliveryFeeOutsideDhaka' in data) || (data.deliveryFeeOutsideDhaka is number && data.deliveryFeeOutsideDhaka >= 0)) &&
+        (!('announcement' in data) || (data.announcement is string && data.announcement.size() <= 300)) &&
+        (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 1000));
+    }
+
+    match /settings/{settingId} {
+      allow get, list: if true;
+      allow create, update: if isAdmin() && isValidId(settingId) && isValidSettings(incoming());
+      allow delete: if false;
+    }
+  }
+}

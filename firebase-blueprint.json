@@ -1,0 +1,436 @@
+{
+  "entities": {
+    "Admin": {
+      "title": "Admin",
+      "description": "Store administrative user with full management privileges",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Admin email address"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "superadmin"],
+          "description": "Role string"
+        },
+        "assignedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when admin role was granted"
+        }
+      },
+      "required": ["email", "role"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Customer profile containing shipping information and preferences",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Customer email"
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Customer full name"
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Primary phone number"
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Full street and delivery address"
+        },
+        "district": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Delivery district in Bangladesh"
+        },
+        "deliveryArea": {
+          "type": "string",
+          "enum": ["inside_dhaka", "outside_dhaka"],
+          "description": "Delivery zone"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["customer"],
+          "description": "User role (must be customer)"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account creation timestamp"
+        }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Fashion catalog item with sizes, colors, and stock levels",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Product display title in English"
+        },
+        "nameBn": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Product display title in Bengali"
+        },
+        "slug": {
+          "type": "string",
+          "maxLength": 180,
+          "description": "URL-friendly unique slug"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Detailed product description and specs"
+        },
+        "descriptionBn": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Bengali description"
+        },
+        "price": {
+          "type": "number",
+          "description": "Regular price in Bangladeshi Taka"
+        },
+        "discountPrice": {
+          "type": "number",
+          "description": "Discounted price in BDT if on promotion"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Units available in inventory"
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Category slug"
+        },
+        "categoryName": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Category display name"
+        },
+        "sizes": {
+          "type": "array",
+          "description": "Available clothing sizes"
+        },
+        "colors": {
+          "type": "array",
+          "description": "Available color variants"
+        },
+        "images": {
+          "type": "array",
+          "description": "List of high-resolution product image URLs"
+        },
+        "isFeatured": {
+          "type": "boolean",
+          "description": "Featured on homepage"
+        },
+        "isBestSeller": {
+          "type": "boolean",
+          "description": "Marked as top best seller"
+        },
+        "isNewArrival": {
+          "type": "boolean",
+          "description": "Marked as new arrival"
+        },
+        "fabric": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Fabric and material composition"
+        },
+        "careInstructions": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Washing and care instructions"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when product was added"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when product was updated"
+        }
+      },
+      "required": ["name", "slug", "price", "stock", "category"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase transaction record",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Formatted order reference e.g. SCN-202611-1001"
+        },
+        "customerId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Customer Auth UID or guest indicator"
+        },
+        "customerName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Customer full recipient name"
+        },
+        "customerPhone": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Recipient phone number"
+        },
+        "customerEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Recipient contact email"
+        },
+        "deliveryAddress": {
+          "type": "string",
+          "maxLength": 400,
+          "description": "Full shipping address"
+        },
+        "district": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Bangladesh district"
+        },
+        "deliveryArea": {
+          "type": "string",
+          "enum": ["inside_dhaka", "outside_dhaka"],
+          "description": "Delivery zone"
+        },
+        "orderNotes": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Special delivery instructions"
+        },
+        "items": {
+          "type": "array",
+          "description": "Purchased item snapshots (id, name, price, size, color, qty, image)"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Subtotal before delivery fee in BDT"
+        },
+        "deliveryFee": {
+          "type": "number",
+          "description": "Delivery charge in BDT"
+        },
+        "total": {
+          "type": "number",
+          "description": "Grand total payable in BDT"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["Cash on Delivery", "bKash", "Nagad"],
+          "description": "Selected payment method"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"],
+          "description": "Current lifecycle status of the order"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Order placement timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      },
+      "required": ["orderNumber", "customerId", "customerName", "customerPhone", "deliveryAddress", "subtotal", "total", "status"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category grouping",
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Category slug identifier"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Category name in English"
+        },
+        "nameBn": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Category name in Bengali"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Category description"
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Cover image URL"
+        },
+        "displayOrder": {
+          "type": "number",
+          "description": "Sort order index"
+        }
+      },
+      "required": ["slug", "name"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "Homepage hero and promotional banner slide",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Banner headline"
+        },
+        "subtitle": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Banner secondary tagline"
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Banner imagery"
+        },
+        "linkUrl": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Target shop category or link"
+        },
+        "buttonText": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Call to action text"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Whether banner is visible"
+        },
+        "order": {
+          "type": "number",
+          "description": "Display order"
+        }
+      },
+      "required": ["title", "imageUrl"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Global store configuration and contact details",
+      "type": "object",
+      "properties": {
+        "storeName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Store branding name"
+        },
+        "tagline": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "Store official tagline"
+        },
+        "phone1": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Primary phone"
+        },
+        "phone2": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Secondary phone"
+        },
+        "whatsapp": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "WhatsApp contact number"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Support email address"
+        },
+        "facebookUrl": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Facebook profile / page URL"
+        },
+        "deliveryFeeInsideDhaka": {
+          "type": "number",
+          "description": "Standard delivery charge inside Dhaka (BDT)"
+        },
+        "deliveryFeeOutsideDhaka": {
+          "type": "number",
+          "description": "Standard delivery charge outside Dhaka (BDT)"
+        },
+        "announcement": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Top announcement marquee text"
+        },
+        "logoUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Custom store logo URL if uploaded by admin"
+        }
+      },
+      "required": ["storeName", "phone1", "email"]
+    }
+  },
+  "firestore": {
+    "/admins/{adminUid}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Registered administrators with role verification"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Customer profiles and shipping defaults"
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Fashion products catalog"
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Fashion category collections"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Customer orders and fulfillment status"
+    },
+    "/banners/{bannerId}": {
+      "schema": { "$ref": "#/entities/Banner" },
+      "description": "Homepage promotional carousel banners"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/StoreSettings" },
+      "description": "Store settings, contact info and fee configurations"
+    }
+  }
+}
