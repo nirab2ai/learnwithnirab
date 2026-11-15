@@ -66,11 +66,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>('inside_dhaka');
 
   useEffect(() => {
-    localStorage.setItem('classy_nirab_cart', JSON.stringify(cart));
+    try {
+      localStorage.setItem('classy_nirab_cart', JSON.stringify(cart));
+    } catch {
+      // ignore storage errors
+    }
   }, [cart]);
 
   useEffect(() => {
-    localStorage.setItem('classy_nirab_wishlist', JSON.stringify(wishlist));
+    try {
+      localStorage.setItem('classy_nirab_wishlist', JSON.stringify(wishlist));
+    } catch {
+      // ignore storage errors
+    }
   }, [wishlist]);
 
   const addToCart = (product: Product, size: ClothingSize, color?: string, quantity: number = 1) => {

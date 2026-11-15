@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -38,8 +38,68 @@ import {
   subscribeStoreSettings,
 } from './firebase/services';
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+  errorMessage: string;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, errorMessage: '' };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, errorMessage: error?.message || 'Unexpected rendering error' };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Application ErrorBoundary caught:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#F7F7F5] px-4 text-center text-[#111111]">
+          <span className="text-xs font-bold uppercase tracking-[0.25em] text-[#C5A46D]">
+            SHOP WITH CLASSY NIRAB
+          </span>
+          <h1 className="font-serif text-2xl font-bold mt-2 mb-2">
+            Something went wrong
+          </h1>
+          <p className="text-xs text-neutral-600 max-w-md mb-6">
+            {this.state.errorMessage}
+          </p>
+          <button
+            onClick={() => {
+              window.location.hash = '#/';
+              window.location.reload();
+            }}
+            className="rounded-sm bg-[#111111] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#C5A46D] hover:bg-[#C5A46D] hover:text-black transition-colors"
+          >
+            Reload Store
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function getInitialPath(): string {
+  try {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#/')) {
+      return hash.slice(1);
+    }
+  } catch {
+    // ignore
+  }
+  return '/';
+}
+
 function MainApp() {
-  const [currentPath, setCurrentPath] = useState<string>('/');
+  const [currentPath, setCurrentPath] = useState<string>(getInitialPath);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [banners, setBanners] = useState<Banner[]>(INITIAL_BANNERS);
@@ -48,6 +108,20 @@ function MainApp() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+  // Sync with browser hash navigation for GitHub Pages compatibility
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#/')) {
+        setCurrentPath(hash.slice(1));
+      } else if (!hash || hash === '#') {
+        setCurrentPath('/');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Subscribe to real-time Firestore collections
   useEffect(() => {
@@ -75,10 +149,15 @@ function MainApp() {
     };
   }, []);
 
-  // Handle URL navigation and popstate
+  // Handle URL navigation with hash support for static GitHub Pages hosting
   const navigate = (path: string) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setCurrentPath(path);
+    try {
+      window.location.hash = `#${path.startsWith('/') ? path : `/${path}`}`;
+    } catch {
+      // ignore if restricted
+    }
   };
 
   const handleSelectProduct = (productId: string) => {
@@ -93,7 +172,6 @@ function MainApp() {
   const categoryParam = queryParams.get('category') || undefined;
   const tagParam = queryParams.get('tag') || undefined;
   const viewParam = queryParams.get('view') || undefined;
-  const orderIdParam = queryParams.get('orderId') || undefined;
 
   // Selected product resolution
   const activeProduct = selectedProductId
@@ -241,12 +319,14 @@ function MainApp() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <CartProvider>
-          <MainApp />
-        </CartProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <AuthProvider>
+          <CartProvider>
+            <MainApp />
+          </CartProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }

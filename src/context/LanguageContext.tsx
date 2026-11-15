@@ -141,13 +141,21 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('classy_nirab_lang');
-    return saved === 'bn' ? 'bn' : 'en';
+    try {
+      const saved = localStorage.getItem('classy_nirab_lang');
+      return saved === 'bn' ? 'bn' : 'en';
+    } catch {
+      return 'en';
+    }
   });
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('classy_nirab_lang', lang);
+    try {
+      localStorage.setItem('classy_nirab_lang', lang);
+    } catch {
+      // Ignore storage quota/privacy errors
+    }
   };
 
   const t = (key: string): string => {

@@ -6,8 +6,11 @@ import { defineConfig } from 'vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig(() => {
+export default defineConfig(({ command }) => {
   return {
+    // Use relative asset paths in production builds so GitHub Pages subpath hosting
+    // (e.g. https://<user>.github.io/<repo>/) loads JS/CSS bundles without 404s.
+    base: command === 'build' ? './' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
