@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHOP WITH CLASSY NIRAB | Redirecting...</title>
+    <script>
+      (function () {
+        var loc = window.location;
+        var parts = loc.pathname.split('/').filter(Boolean);
+        var hash = loc.hash || '';
+
+        function go(target) {
+          loc.replace(target);
+        }
+
+        if (parts.length > 0) {
+          var repoBase = '/' + parts[0] + '/';
+          var rest = parts.slice(1).join('/');
+          fetch(repoBase + 'docs/index.html', { method: 'HEAD' })
+            .then(function (res) {
+              if (res.ok) {
+                var cleanRest = rest.replace(/^docs\/?/, '');
+                var finalHash = hash || (cleanRest ? '#/' + cleanRest : '');
+                go(repoBase + 'docs/' + finalHash);
+              } else {
+                return fetch('/docs/index.html', { method: 'HEAD' }).then(function (r2) {
+                  if (r2.ok) {
+                    var cleanAll = parts.join('/').replace(/^docs\/?/, '');
+                    go('/docs/' + (hash || (cleanAll ? '#/' + cleanAll : '')));
+                  }
+                });
+              }
+            })
+            .catch(function () {});
+        } else {
+          fetch('/docs/index.html', { method: 'HEAD' })
+            .then(function (res) {
+              if (res.ok) go('/docs/' + hash);
+            })
+            .catch(function () {});
+        }
+      })();
+    </script>
+  </head>
+  <body style="font-family: sans-serif; background: #111111; color: #F7F7F5; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; padding: 24px;">
+    <div style="max-width: 480px;">
+      <p style="color: #C5A46D; letter-spacing: 0.2em; font-size: 12px; font-weight: 700; text-transform: uppercase;">SHOP WITH CLASSY NIRAB</p>
+      <h1 style="font-size: 24px; margin: 12px 0;">Page Not Found</h1>
+      <p style="font-size: 14px; color: #a3a3a3; line-height: 1.6;">
+        If you are deploying on GitHub Pages, set <strong>Settings → Pages → Source</strong> to
+        <strong>Deploy from a branch</strong> using branch <strong>main</strong> and folder <strong>/docs</strong>.
+      </p>
+    </div>
+  </body>
+</html>

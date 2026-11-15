@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHOP WITH CLASSY NIRAB | Redirecting...</title>
+    <script>
+      (function () {
+        var loc = window.location;
+        var parts = loc.pathname.split('/').filter(Boolean);
+        var hash = loc.hash || '';
+
+        if (parts.length > 0) {
+          var candidateBase = '/' + parts[0] + '/';
+          fetch(candidateBase + '.nojekyll', { method: 'HEAD' })
+            .then(function (res) {
+              if (res.ok) {
+                var subRoute = parts.slice(1).join('/');
+                loc.replace(candidateBase + (hash || (subRoute ? '#/' + subRoute : '')));
+              } else {
+                var rootRoute = parts.join('/');
+                loc.replace('/' + (hash || (rootRoute ? '#/' + rootRoute : '')));
+              }
+            })
+            .catch(function () {
+              loc.replace('./');
+            });
+        } else {
+          loc.replace('./' + hash);
+        }
+      })();
+    </script>
+  </head>
+  <body style="font-family: sans-serif; background: #111111; color: #F7F7F5; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0;">
+    <p style="color: #C5A46D; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase;">Redirecting to SHOP WITH CLASSY NIRAB...</p>
+  </body>
+</html>
